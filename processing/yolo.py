@@ -1,7 +1,43 @@
-from ultralytics import YOLO
 import cv2
+import numpy as np
+import onnxruntime as ort
 
-model = YOLO("yolov8n.pt")
+# Load ONNX model
+session = ort.InferenceSession("yolov8n.onnx", providers=["CPUExecutionProvider"])
+
+input_name = session.get_inputs()[0].name
+input_shape = session.get_inputs()[0].shape  # (1, 3, H, W)
+IMG_H, IMG_W = input_shape[2], input_shape[3]
+
+def preprocess(frame):
+    img = cv2.resize(frame, (IMG_W, IMG_H))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = img.astype(np.float32) / 255.0
+    img = np.transpose(img, (2, 0, 1))  # HWC → CHW
+    img = np.expand_dims(img, axis=0)
+    return img
+
+def postprocess(outputs, orig_shape):
+    pred = outputs[0][0]  # (N, 6) — x1 y1 x2 y2 score class
+    results = []
+
+    h, w = orig_shape[:2]
+
+    for x1, y1, x2, y2, score, cls in pred:
+        if score < 0.3:   # conf=0.3 sama seperti ultralytics
+            continue
+
+        if int(cls) != 0:  # kita hanya butuh class 0 = person
+            continue
+
+        results.append([
+            int(x1 * w / IMG_W),
+            int(y1 * h / IMG_H),
+            int(x2 * w / IMG_W),
+            int(y2 * h / IMG_H)
+        ])
+    return results
+
 
 def run_detection(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -12,8 +48,7 @@ def run_detection(video_path):
 
     fps_real = cap.get(cv2.CAP_PROP_FPS)
     FPS = int(round(fps_real)) if fps_real > 0 else 30
-
-    SKIP = max(1, FPS // 2)   # cek 1 frame per 0.5 detik
+    SKIP = max(1, FPS // 2)
 
     cheat_person_count = 0
     frame_id = 0
@@ -27,9 +62,12 @@ def run_detection(video_path):
         if frame_id % SKIP != 0:
             continue
 
-        # YOLO inference
-        results = model(frame, imgsz=480, conf=0.3, verbose=False)[0]
-        person_count = sum(1 for box in results.boxes if int(box.cls) == 0)
+        # INFERENCE pakai ONNX
+        inp = preprocess(frame)
+        outputs = session.run(None, {input_name: inp})
+        persons = postprocess(outputs, frame.shape)
+
+        person_count = len(persons)
 
         if person_count > 1:
             cheat_person_count += 1
