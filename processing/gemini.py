@@ -11,8 +11,9 @@ import time
 # Tambahkan id otomatis
 
 from google import genai
+from decouple import config
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_API_KEY = config('GEMINI_API_KEY')
 
 try :
     client = genai.Client(api_key=GEMINI_API_KEY)

@@ -1,8 +1,8 @@
 from groq import Groq
-import os
+from decouple import config
 
 def speech_to_text(audio_bytes, audio_name,question):
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    GROQ_API_KEY = config("GROQ_API_KEY")
     client = Groq(api_key=GROQ_API_KEY)
 
     transcription = client.audio.transcriptions.create(
