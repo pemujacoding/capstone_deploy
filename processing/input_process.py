@@ -6,11 +6,9 @@ import subprocess
 from . import yolo
 from . import stt
 
-FFMPEG_BIN = "/app/ffmpeg"
-
 def compress_video(input_path, output_path):
     cmd = [
-        FFMPEG_BIN,
+        "ffmpeg",
         "-y",
         "-i", input_path,
         "-vcodec", "libx264",
@@ -31,7 +29,7 @@ def compress_video(input_path, output_path):
 def extract_audio(video_path, audio_path):
     try:
         cmd = [
-            FFMPEG_BIN,
+            "ffmpeg",
             "-y",                     # overwrite output
             "-i", video_path,         # input
             "-vn",                    # no video
