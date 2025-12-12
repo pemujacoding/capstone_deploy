@@ -2,7 +2,7 @@ import mysql.connector
 import os
 
 db = mysql.connector.connect(
-    host= os.getenv('MYSQLHOST'),        # atau IP server MySQL
+    host= "yamanote.proxy.rlwy.net",        # atau IP server MySQL
     user=os.getenv('MYSQLUSER'),
     password=os.getenv('MYSQLPASSWORD'),
     database=os.getenv('MYSQLDATABASE')
