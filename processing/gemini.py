@@ -10,8 +10,8 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-PRIMARY_MODEL = "gemini-2.0-flash"
-FALLBACK_MODEL = "gemini-1.5-flash"
+PRIMARY_MODEL = "gemini-2.5-flash"
+FALLBACK_MODEL = "gemini-2.0-flash"
 
 def safe_generate(model, prompt, retries=5):
     model_obj = genai.GenerativeModel(model)
