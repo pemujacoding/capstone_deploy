@@ -1,9 +1,11 @@
 from .connect import cursor, db
 import json
+from datetime import datetime
 
 def insert_new_interview_session(user_id,candidate_id):
-    sql = "INSERT INTO interview (user_id, candidate_id, status) VALUES (%s,%s,'Pending')"
-    cursor.execute(sql, (user_id,candidate_id))
+    now = datetime.now()
+    sql = "INSERT INTO interview (user_id, candidate_id, created_at, status) VALUES (%s,%s,%s,'Pending')"
+    cursor.execute(sql, (user_id,candidate_id,now))
     new_session_id = cursor.lastrowid
     db.commit() 
     return new_session_id
