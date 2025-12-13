@@ -4,11 +4,11 @@ import os
 
 passs = os.getenv("MYSQL_PASSWORD")
 db = mysql.connector.connect(
-    host= "yamanote.proxy.rlwy.net",        # atau IP server MySQL
+    host= "shuttle.proxy.rlwy.nett",        # atau IP server MySQL
     user="root",
     password=passs,
     database= "railway",
-    port = "58251"
+    port = "53774"
 )
 
 cursor = db.cursor()
