@@ -3,7 +3,12 @@ import numpy as np
 import onnxruntime as ort
 
 # Load ONNX model
-session = ort.InferenceSession("yolov8n.onnx", providers=["CPUExecutionProvider"])
+session = ort.InferenceSession(
+    "yolov8n.onnx",
+    providers=["CPUExecutionProvider"],
+    sess_options=ort.SessionOptions()
+)
+session.set_providers(["CPUExecutionProvider"], [{'intra_op_num_threads': 2}])
 input_name = session.get_inputs()[0].name
 input_shape = session.get_inputs()[0].shape  # (1, 3, H, W)
 IMG_H, IMG_W = input_shape[2], input_shape[3]
