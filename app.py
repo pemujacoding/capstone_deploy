@@ -147,93 +147,6 @@ def delete_candidate(candidate_id):
     flash("Candidate deleted successfully!", "success")
     return redirect(url_for("candidates"))
 
-
-@app.route("/dashboard/final_result/<int:interview_id>", methods=["GET", "POST"])
-def final_result(interview_id):
-    if 'user_id' not in session:
-        flash("Please log in to view this page.", "error")
-        return redirect(url_for('login'))
-    
-    interview = conn_interview.get_for_final(session['user_id'], interview_id)
-    if not interview:
-        flash("Interview not found!", "error")
-        return redirect(url_for("history"))
-    
-    # Data candidate untuk assessorProfile (index: 2=id, 6=name, 8=photoUrl)
-    candidate_id = interview[2]
-    candidate_name = interview[6]
-    candidate_photo = interview[8] or ""  # Default kosong jika None
-    
-    final_tuple = conn_final.get_by_id(interview_id)
-    final_json_str = final_tuple[2] if final_tuple else None  # Untuk tampilan jika perlu
-    
-    interview_json_raw = interview[3]  # result dari interview
-    
-    # Hitung interview_score untuk overview
-    interview_score = conn_interview.parse_interview_score_normalized(interview_json_raw)
-    
-    existing_recommendation = "No recommendation available"
-    if final_tuple:
-        try:
-            existing_data = json.loads(final_tuple[2])
-            existing_recommendation = existing_data.get("recommendation", "No recommendation available")
-        except:
-            pass
-    
-    if request.method == "POST":
-        project_name = request.form.get("project_name", "").strip()
-        project_score = float(request.form.get("project_score", 0))
-        notes = request.form.get("notes", "")
-
-        # Validasi project name (minimal tidak kosong)
-        if not project_name:
-            flash("Project name is required.", "error")
-            return redirect(request.url)
-        
-        if project_score < 0 or project_score > 100:
-            flash("Project score must be between 0 and 100.", "error")
-            return redirect(request.url)
-        
-        # Ambil interviews checklist
-        interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
-
-        final_data = final_result(project_score,interview_score,interviews_checklist,candidate_id,candidate_name,candidate_photo,project_name,notes)
-        
-        conn_final.save_final_result(interview_id, final_data)
-        
-        flash("Final result saved successfully!", "success")
-        return redirect(request.url)
-    
-    # Parsing existing JSON untuk pre-fill form (jika ada)
-    existing_project_name = ""
-    existing_project_score = ""
-    existing_notes = ""
-    if final_tuple:
-        try:
-            existing_data = json.loads(final_tuple[2])
-            existing_project_name = existing_data.get("reviewChecklistResult", {}).get("project", [""])[0]
-            existing_project_score = existing_data.get("scoresOverview", {}).get("project", 0)
-            existing_notes = existing_data.get("Overall notes", "")
-        except json.JSONDecodeError as e:
-            print(f"[ERROR] Gagal parse existing final JSON: {e}")
-        except Exception as e:
-            print(f"[ERROR] Exception parsing existing: {e}")
-
-    # Tambah debug untuk interviews_checklist (opsional, bisa hapus nanti)
-    interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
-    print(f"[DEBUG] Interviews Checklist extracted: {interviews_checklist}")
-        
-    return render_template(
-    "final_result.html",
-    interview=interview,
-    final_json_str=final_tuple[2] if final_tuple else None,
-    interview_score=interview_score,
-    existing_project_name=existing_project_name,
-    existing_project_score=existing_project_score,
-    existing_notes=existing_notes,
-    existing_recommendation=existing_recommendation
-    )
-    
 @app.route("/dashboard/delete_interview/<int:interview_id>", methods=["GET","POST"])
 def delete_interview(interview_id):
     interview = conn_interview.get_by_id(interview_id)
@@ -338,6 +251,92 @@ def new_interview():
         return redirect(url_for('history'))
 
     return render_template("interview.html", candidates=candidates)
+
+@app.route("/dashboard/final_result/<int:interview_id>", methods=["GET", "POST"])
+def final_result(interview_id):
+    if 'user_id' not in session:
+        flash("Please log in to view this page.", "error")
+        return redirect(url_for('login'))
+    
+    interview = conn_interview.get_for_final(session['user_id'], interview_id)
+    if not interview:
+        flash("Interview not found!", "error")
+        return redirect(url_for("history"))
+    
+    # Data candidate untuk assessorProfile (index: 2=id, 6=name, 8=photoUrl)
+    candidate_id = interview[2]
+    candidate_name = interview[6]
+    candidate_photo = interview[8] or ""  # Default kosong jika None
+    
+    final_tuple = conn_final.get_by_id(interview_id)
+    final_json_str = final_tuple[2] if final_tuple else None  # Untuk tampilan jika perlu
+    
+    interview_json_raw = interview[3]  # result dari interview
+    
+    # Hitung interview_score untuk overview
+    interview_score = conn_interview.parse_interview_score_normalized(interview_json_raw)
+    
+    existing_recommendation = "No recommendation available"
+    if final_tuple:
+        try:
+            existing_data = json.loads(final_tuple[2])
+            existing_recommendation = existing_data.get("recommendation", "No recommendation available")
+        except:
+            pass
+    
+    if request.method == "POST":
+        project_name = request.form.get("project_name", "").strip()
+        project_score = float(request.form.get("project_score", 0))
+        notes = request.form.get("notes", "")
+
+        # Validasi project name (minimal tidak kosong)
+        if not project_name:
+            flash("Project name is required.", "error")
+            return redirect(request.url)
+        
+        if project_score < 0 or project_score > 100:
+            flash("Project score must be between 0 and 100.", "error")
+            return redirect(request.url)
+        
+        # Ambil interviews checklist
+        interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
+
+        final_data = final_result(project_score,interview_score,interviews_checklist,candidate_id,candidate_name,candidate_photo,project_name,notes)
+        
+        conn_final.save_final_result(interview_id, final_data)
+        
+        flash("Final result saved successfully!", "success")
+        return redirect(request.url)
+    
+    # Parsing existing JSON untuk pre-fill form (jika ada)
+    existing_project_name = ""
+    existing_project_score = ""
+    existing_notes = ""
+    if final_tuple:
+        try:
+            existing_data = json.loads(final_tuple[2])
+            existing_project_name = existing_data.get("reviewChecklistResult", {}).get("project", [""])[0]
+            existing_project_score = existing_data.get("scoresOverview", {}).get("project", 0)
+            existing_notes = existing_data.get("Overall notes", "")
+        except json.JSONDecodeError as e:
+            print(f"[ERROR] Gagal parse existing final JSON: {e}")
+        except Exception as e:
+            print(f"[ERROR] Exception parsing existing: {e}")
+
+    # Tambah debug untuk interviews_checklist (opsional, bisa hapus nanti)
+    interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
+    print(f"[DEBUG] Interviews Checklist extracted: {interviews_checklist}")
+        
+    return render_template(
+    "final_result.html",
+    interview=interview,
+    final_json_str=final_tuple[2] if final_tuple else None,
+    interview_score=interview_score,
+    existing_project_name=existing_project_name,
+    existing_project_score=existing_project_score,
+    existing_notes=existing_notes,
+    existing_recommendation=existing_recommendation
+    )
 
 @app.route("/dashboard/reanalyze_gemini/<int:interview_id>", methods=["GET", "POST"])
 def reanalyze_gemini(interview_id):
