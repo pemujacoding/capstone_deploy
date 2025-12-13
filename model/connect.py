@@ -7,7 +7,7 @@ print (passs)
 db = mysql.connector.connect(
     host= "yamanote.proxy.rlwy.net",        # atau IP server MySQL
     user="root",
-    password=os.getenv("MYSQL_PASSWORD"),
+    password="vdUUleETGAYacyXsNJJRTZcqNIEKDWoS",
     database= "railway",
     port = "58251"
 )
