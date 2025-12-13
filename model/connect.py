@@ -4,7 +4,7 @@ import os
 
 passs = os.getenv("MYSQL_PASSWORD")
 db = mysql.connector.connect(
-    host= "shuttle.proxy.rlwy.nett",        # atau IP server MySQL
+    host= "shuttle.proxy.rlwy.net",        # atau IP server MySQL
     user="root",
     password=passs,
     database= "railway",
