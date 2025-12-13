@@ -301,7 +301,7 @@ def final_result(interview_id):
         # Ambil interviews checklist
         interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
 
-        final_data = final_result(project_score,interview_score,interviews_checklist,candidate_id,candidate_name,candidate_photo,project_name,notes)
+        final_data = p_input.final_result(project_score,interview_score,interviews_checklist,candidate_id,candidate_name,candidate_photo,project_name,notes)
         
         conn_final.save_final_result(interview_id, final_data)
         
