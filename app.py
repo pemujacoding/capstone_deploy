@@ -298,10 +298,41 @@ def final_result(interview_id):
             flash("Project score must be between 0 and 100.", "error")
             return redirect(request.url)
         
+        # Hitung total dengan bobot
+        total_score = round((project_score * 0.715) + (interview_score * 0.285), 2)
+        
         # Ambil interviews checklist
         interviews_checklist = conn_interview.get_interviews_checklist(interview_json_raw)
-
-        final_data = p_input.final_result(project_score,interview_score,interviews_checklist,candidate_id,candidate_name,candidate_photo,project_name,notes)
+        
+        if total_score >= 90:
+            recommendation = "PASS - Candidate exceeds expectations and is recommended for hiring based on industry standards."
+        elif 70 <= total_score < 90:
+            recommendation = "CONSIDERED - Candidate meets basic requirements but may need further evaluation or training for industry fit."
+        else:
+            recommendation = "REJECTED - Candidate does not meet the required thresholds for this role based on industry benchmarks."
+        
+        # Buat JSON lengkap
+        final_data = {
+            "assessorProfile": {
+                "id": candidate_id,
+                "name": candidate_name,
+                "photoUrl": candidate_photo
+            },
+            "decision": "Need Human",
+            "reviewedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "scoresOverview": {
+                "project": project_score,
+                "interview": interview_score,
+                "total": total_score
+            },
+            "reviewChecklistResult": {
+                "project": [project_name],
+                "interviews": interviews_checklist
+            },
+            "Overall notes": notes,
+            "recommendation": recommendation
+        }
+        
         
         conn_final.save_final_result(interview_id, final_data)
         
