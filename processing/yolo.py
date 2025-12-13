@@ -3,12 +3,8 @@ import numpy as np
 import onnxruntime as ort
 
 # Load ONNX model
-session = ort.InferenceSession(
-    "yolov8n.onnx",
-    providers=["CPUExecutionProvider"],
-    sess_options=ort.SessionOptions()
-)
-session.set_providers(["CPUExecutionProvider"], [{'intra_op_num_threads': 2}])
+session = ort.InferenceSession("yolov8n.onnx", providers=["CPUExecutionProvider"])
+
 input_name = session.get_inputs()[0].name
 input_shape = session.get_inputs()[0].shape  # (1, 3, H, W)
 IMG_H, IMG_W = input_shape[2], input_shape[3]
@@ -21,21 +17,17 @@ def preprocess(frame):
     img = np.expand_dims(img, axis=0)
     return img
 
-def postprocess(outputs, orig_shape, conf_thresh=0.3, class_id=0):
-    pred = outputs[0][0]  # (N, 6 atau lebih) — x1, y1, x2, y2, score, cls
+def postprocess(outputs, orig_shape):
+    pred = outputs[0][0]  # (N, 6) — x1 y1 x2 y2 score class
     results = []
 
     h, w = orig_shape[:2]
 
-    for det in pred:
-        if len(det) < 6:
-            continue  # skip kalau format tidak sesuai
-
-        x1, y1, x2, y2, score, cls = det[:6]
-
-        if score < conf_thresh:
+    for x1, y1, x2, y2, score, cls in pred:
+        if score < 0.3:   # conf=0.3 sama seperti ultralytics
             continue
-        if int(cls) != class_id:
+
+        if int(cls) != 0:  # kita hanya butuh class 0 = person
             continue
 
         results.append([
@@ -45,6 +37,7 @@ def postprocess(outputs, orig_shape, conf_thresh=0.3, class_id=0):
             int(y2 * h / IMG_H)
         ])
     return results
+
 
 def run_detection(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -69,12 +62,14 @@ def run_detection(video_path):
         if frame_id % SKIP != 0:
             continue
 
-        # ONNX inference
+        # INFERENCE pakai ONNX
         inp = preprocess(frame)
         outputs = session.run(None, {input_name: inp})
         persons = postprocess(outputs, frame.shape)
 
-        if len(persons) > 1:
+        person_count = len(persons)
+
+        if person_count > 1:
             cheat_person_count += 1
 
     cap.release()
