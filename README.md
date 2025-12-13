@@ -10,6 +10,7 @@ RecruitSense AI adalah sebuah website yang memungkinkan pengguna menganalisis in
 - Yolo berupa model yang disediakan oleh ultralytic dalam format onnx berikut tautannya : https://github.com/pemujacoding/capstone_deploy/blob/main/yolov8n.onnx
 
 ## 3. Cara Penggunaan
+- Akses web pada tautan capstonedeploy-production-be3a.up.railway.app
 - Penggunaan dapat diakses melalui video berikut https://drive.google.com/file/d/10YarXuR9yb0vtwlFu3zXL3Fe-kJzofgA/view?usp=drive_link
 
 ## 4. Cara Replikasi
