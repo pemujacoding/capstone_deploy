@@ -20,6 +20,7 @@ def compress_video(input_path, output_path):
         "-crf", "28", 
         "-preset", "veryfast",
         "-acodec", "aac",
+        "-threads", "2",
         output_path
     ]
 
