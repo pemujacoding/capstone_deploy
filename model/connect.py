@@ -2,6 +2,7 @@ import mysql.connector
 from decouple import config
 
 passs = config("MYSQL_PASSWORD")
+print (passs)
 db = mysql.connector.connect(
     host= "yamanote.proxy.rlwy.net",        # atau IP server MySQL
     user="root",
