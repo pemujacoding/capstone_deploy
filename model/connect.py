@@ -1,14 +1,17 @@
-import mysql.connector
-from decouple import config
 import os
+import mysql.connector
+from urllib.parse import urlparse
 
-passs = os.getenv("MYSQL_PASSWORD")
+database_url = os.getenv("MYSQL_URL")
+
+url = urlparse(database_url)
+
 db = mysql.connector.connect(
-    host= "shuttle.proxy.rlwy.net",        # atau IP server MySQL
-    user="root",
-    password=passs,
-    database= "railway",
-    port = "53774"
+    host=url.hostname,
+    user=url.username,
+    password=url.password,
+    database=url.path.lstrip("/"),
+    port=url.port,
 )
 
 cursor = db.cursor()
